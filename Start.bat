@@ -15,7 +15,28 @@ color b
 
 
 :::::    CONFIG GENERATOR     :::::
-If exist "%temp%\vapeConfig.txt" (goto LoadChecker) else (echo ;;VAPE RUNNER CONFIG >%config_file% & echo. >>%config_file% & echo. >>%config_file% & echo. >>%config_file% & echo ;; Vape directory (The folder with the server.py not the exe) >>%config_file% & echo Vape-Dir=n/a >>%config_file% a & echo. >>%config_file% & echo ;; Vape version. Put "v4" or "lite" (Lowercase)  >>%config_file% & echo Vape-Version= >>%config_file% & echo. >>%config_file% & echo ;; Load time (The time the program wait before open vape. So, open the server and wait x time to wait before inyect)  -  Default: 5 >>%config_file% & echo Timeout-Time=5 >>%config_file% & echo .>>%config_file% & echo ;;Batch startup location >>%config_file% & echo Bat-location=C:\Windows\System32\vape.bat >>%config_file% & cls & echo Config file generated on %config_file% & timeout /t 2 /nobreak >%temp%\nul & exit )
+If exist "%temp%\vapeConfig.txt" (goto LoadChecker) else (
+    echo ;;VAPE RUNNER CONFIG >%config_file% 
+    echo. >>%config_file% 
+    echo. >>%config_file% 
+    echo. >>%config_file% 
+    echo ;; Vape directory (The folder with the server.py not the exe) >>%config_file% 
+    echo Vape-Dir=n/a >>%config_file%
+    echo. >>%config_file% 
+    echo ;; Vape version. Put "v4" or "lite" (Lowercase)  >>%config_file% 
+    echo Vape-Version=n/a >>%config_file% 
+    echo. >>%config_file% 
+    echo ;; Load time (The time the program wait before open vape. So, open the server and wait x time to wait before inyect)  -  Default: 5 >>%config_file% 
+    echo Timeout-Time=5 >>%config_file% 
+    echo.>>%config_file% 
+    echo ;;Batch startup location (Only if you want self destruct) >>%config_file% 
+    echo Bat-location="%~f0" >>%config_file% 
+    cls 
+    echo Config file generated on %config_file% 
+    start "" "%config_file%"
+    timeout /t 5 /nobreak >%temp%\nul 
+    exit
+)
 goto LoadChecker
 
 
@@ -23,24 +44,41 @@ goto LoadChecker
 :::::    loader checker    :::::
 :LoadChecker
 cls
-if "%Vape-Dir%"=="n/a" (echo Dir is not defines & timeout /t 2 /nobreak & exit )
+if /i "%Vape-Dir%"=="n/a" (echo Dir is not definded & timeout /t 2 /nobreak & exit )
 cls
-If "%Vape-Version%"=="v4" (echo Loading Vape v4. If you want to load Vape Lite change con config file ^(%config_file%^) & timeout /t 3 /nobreak & goto Loadv4) else (If "%Vape-Version%"=="lite" (echo Loading Vape Lite. If you want to load Vape v4 change con config file ^(%config_file%^) & timeout /t 3 /nobreak & goto LoadLite) else (echo Vape version not defined/incorrect spelling on config file ^(%config_file%^) & timeout /t 3 /nobreak & exit))
+
+If /i "%Vape-Version%"=="v4" (
+    echo Loading Vape v4. If you want to load Vape Lite change the config file
+    timeout /t 3 /nobreak & goto Loadv4
+) else (
+    If "%Vape-Version%"=="lite" (
+        echo Loading Vape Lite. If you want to load Vape v4 change config file
+        timeout /t 3 /nobreak & goto LoadLite
+    ) else (
+            echo Vape version not defined/incorrect spelling on config file ^(%config_file%^) 
+            start "" "%config_file%"
+            timeout /t 3 /nobreak & exit
+        )
+)
 
 
 
 :::::    Server Loader v4     :::::
 :Loadv4
+taskkill /f /t /fi "windowtitle eq server vape*"
 cd "%Vape-Dir%"
 cls
 
-If NOT exist "tmp.bat" (echo @echo off >>tmp.bat & echo color b >>tmp.bat & echo python server.py >>tmp.bat)
+If NOT exist "tmp.bat" (
+    echo @echo off >>tmp.bat 
+    echo title server vape >>tmp.bat 
+    echo color b >>tmp.bat 
+    echo python server.py >>tmp.bat)
 
 start tmp.bat
 cls
 echo Giving time to the server to load
 timeout /t %Timeout-Time% /nobreak >nul
-
 "%Vape-Dir%\Vape_V4\Kangaroo Patcher.exe" "%Vape-Dir%\Vape_V4\Vape_V4.exe"
 
 goto Loadedv4
@@ -50,10 +88,15 @@ goto Loadedv4
 
 :::::    Server Loader Lite     :::::
 :LoadLite
+taskkill /f /t /fi "windowtitle eq server vape*"
 cd "%Vape-Dir%"
 cls
 
-If NOT exist "tmp.bat" (echo @echo off >>tmp.bat & echo color b >>tmp.bat & echo python server.py >>tmp.bat)
+If NOT exist "tmp.bat" (
+    echo @echo off >>tmp.bat 
+    title server vape
+    echo color b >>tmp.bat 
+    echo python server.py >>tmp.bat)
 
 start tmp.bat
 cls
@@ -69,6 +112,7 @@ goto LoadedLite
 :::::    Menu for loaded v4     :::::
 :Loadedv4
 cd "%Vape-Dir%"
+mode 43,20
 cls
 echo ###########################################
 echo #                                         #
@@ -85,7 +129,7 @@ echo ###########################################
 echo.
 echo.
 echo.
-echo            [1]. Re-inyect
+echo            [1]. Re-inyect (Just inyect)
 echo            [2]. Re-open server
 echo            [3]. Self destruct
 set/p menu=Option: 
@@ -105,6 +149,7 @@ goto Loadedv4
 :LoadedLite
 cd "%Vape-Dir%"
 cls
+mode 43,20
 echo ###########################################
 echo #                                         #
 echo #                                         #
@@ -123,6 +168,8 @@ echo.
 echo            [1]. Re-inyect
 echo            [2]. Re-open server
 echo            [3]. Self destruct
+echo.
+echo.
 set/p menu=Option: 
 If "%menu%"=="1" goto LoadLite
 If "%menu%"=="2" start tmp.bat
@@ -144,7 +191,8 @@ goto LoadedLite
 :::::    Destestruct     :::::
 :destruct
 echo Remember to selfdestruct vape on RSHIFT ^> Other ^> Self-Destruct
-timeout /t 5 /nobreak
+echo That may not work XD
+timeout /t 7 /nobreak
 cd %temp%
 echo @echo off >> "%temp%\sd.bat"
 echo title >> "%temp%\sd.bat"
